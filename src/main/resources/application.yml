@@ -4,9 +4,9 @@ server:
 spring:
   datasource:
     druid:
-      url: jdbc:mysql://127.0.0.1:3306/xoyo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      url: jdbc:mysql://xuyutech.top:3306/xoyo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
       username: root
-      password: root
+      password: index1130
       driver-class-name: com.mysql.cj.jdbc.Driver
       name: mysql-xuyutech-xoyo
       initial-size: 1
@@ -46,7 +46,7 @@ spring:
           enabled: false
   redis:
     database: 0           # Redis数据库索引（默认为0）
-    host: 127.0.0.1    # Redis服务器地址
+    host: xuyutech.top
     port: 6379            # Redis服务器连接端口
     password:  # Redis服务器连接密码（默认为空）
     timeout: 10000        # 连接超时时间（毫秒）
