@@ -1,0 +1,68 @@
+server:
+  port: 10001
+
+spring:
+  datasource:
+    druid:
+      url: jdbc:mysql://127.0.0.1:3306/xoyo?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      name: mysql-xuyutech-xoyo
+      initial-size: 1
+      max-active: 20
+      max-wait: 60000
+      min-idle: 1
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      async-init: true
+      # psCache 游标缓存 oracle 提升效率 mysql 建议关闭
+      pool-prepared-statements: false
+      # 大于 0 耗内存越大
+      max-pool-prepared-statement-per-connection-size: -1
+      filters: stat,wall,slf4j
+      stat-view-servlet:
+        enabled: false
+        url-pattern: /druid/*
+      filter:
+        stat:
+          log-slow-sql: false
+          slow-sql-millis: 2000000
+          merge-sql: false
+          enabled: false
+        wall:
+          enabled: false
+          # https://github.com/alibaba/druid/wiki/%E9%85%8D%E7%BD%AE-wallfilter
+          config:
+            delete-allow: false
+            truncate-allow: false
+            create-table-allow: false
+            drop-table-allow: false
+        slf4j:
+          enabled: false
+  redis:
+    database: 0           # Redis数据库索引（默认为0）
+    host: 127.0.0.1    # Redis服务器地址
+    port: 6379            # Redis服务器连接端口
+    password:  # Redis服务器连接密码（默认为空）
+    timeout: 10000        # 连接超时时间（毫秒）
+    jedis:
+      pool:
+        max-idle: 200
+        max-wait: 10000
+        max-active: 1024
+
+# 日志
+logging:
+  #  level:
+  #    com.mall.demo.mapper: debug
+  config: classpath:logback-spring.xml
+
+# mybatis-plus
+mybatis-plus:
+  mapper-locations: classpath*:mapper/xoyo/*.xml
+  type-aliases-package: com.vicent.xoyo.entity
