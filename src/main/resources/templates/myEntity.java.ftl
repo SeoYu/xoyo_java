@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiModelProperty;
 </#if>
 <#if entityLombokModel>
 import lombok.*;
+import lombok.experimental.Accessors;
 </#if>
 
 /**
@@ -28,8 +29,8 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = false)
     </#if>
 @Accessors(chain = true)
-    @AllArgsConstructor
-    @NoArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 </#if>
 <#if table.convert>
 @TableName("${table.name}")

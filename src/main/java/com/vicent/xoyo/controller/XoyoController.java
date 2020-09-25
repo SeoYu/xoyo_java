@@ -1,5 +1,6 @@
 package com.vicent.xoyo.controller;
 
+import com.vicent.xoyo.service.IGoodsService;
 import com.vicent.xoyo.utils.Jx3Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,9 @@ import java.util.Map;
 @RestController
 @Slf4j
 public class XoyoController {
+
+    @Autowired
+    IGoodsService goodsService;
 
     @PostMapping("/submitForm")
     public Map<String, Object> submitForm(@RequestBody Map<String,Object> body){
@@ -40,5 +44,11 @@ public class XoyoController {
             response.put("msg",e.getMessage());
         }
         return response;
+    }
+
+    @PostMapping("/admin/load")
+    public String load(@RequestBody Map<String,Object> body){
+        goodsService.asyncLoadSchedule();
+        return "success";
     }
 }

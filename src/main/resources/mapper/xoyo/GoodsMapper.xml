@@ -2,4 +2,108 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.vicent.xoyo.mapper.GoodsMapper">
 
+    <select id="list" resultType="java.util.Map">
+        select
+        t.role_experience_point,t.state,t.tags,t.info,t.role_sect,t.role_shape,t.followed_num,DATE_FORMAT(t.remaining_time, '%Y-%m-%d %H:%i:%s') as remaining_time,t.single_unit_price / 100 as single_unit_price,t.consignment_id,t1.hair,t1.shopExterior,t1.backCloak,t1.horse,t1.pet,t1.adventure
+        from
+        goods t
+        left join good_info t1 on t.`consignment_id` = t1.`consignment_id`
+        <where>
+            t.remaining_time > now()
+            <if test="hairs != null and hairs.size() > 0">
+                and t1.hair REGEXP
+                <foreach collection="hairs" index="index" item="hair" open="'" separator="|" close="'">${hair}</foreach>
+            </if>
+
+            <if test="shopExteriors != null and shopExteriors.size() > 0">
+                and t1.shopExterior REGEXP
+                <foreach collection="shopExteriors" index="index" item="shopExterior" open="'" separator="|" close="'">${shopExterior}</foreach>
+            </if>
+
+            <if test="adventures != null and adventures.size() > 0">
+                and t1.adventure REGEXP
+                <foreach collection="adventures" index="index" item="adventure" open="'" separator="|" close="'">${adventure}</foreach>
+            </if>
+
+            <if test="zone_id != null and zone_id != ''">
+                and t.zone_id = #{zone_id}
+            </if>
+            <if test="server_id != null and server_id != ''">
+                and t.server_id = #{server_id}
+            </if>
+            <if test="role_shape != null and role_shape != ''">
+                and t.role_shape = #{role_shape}
+            </if>
+            <if test="role_sect != null and role_sect != ''">
+                and t.role_sect = #{role_sect}
+            </if>
+            <if test="price_s != null and price_s != ''">
+                and t.single_unit_price >= #{price_s}
+            </if>
+            <if test="price_e != null and price_e != ''">
+                and t.single_unit_price <![CDATA[<=]]> #{price_e}
+            </if>
+        </where>
+        <if test="sort != null and sort != '' and sort == 'followed_num'">
+            <if test="sortType != null and sortType != '' and sortType == 'DESC'">
+                order by t.followed_num desc
+            </if>
+            <if test="sortType != null and sortType != '' and sortType == 'ASC'">
+                order by t.followed_num asc
+            </if>
+        </if>
+        <if test="sort != null and sort != '' and sort == 'single_unit_price'">
+            <if test="sortType != null and sortType != '' and sortType == 'DESC'">
+                order by t.single_unit_price desc
+            </if>
+            <if test="sortType != null and sortType != '' and sortType == 'ASC'">
+                order by t.single_unit_price asc
+            </if>
+        </if>
+        limit #{offset},#{pageSize}
+    </select>
+
+    <select id="listCount" resultType="int">
+        select
+        count(1) as count
+        from
+        goods t
+        left join good_info t1 on t.`consignment_id` = t1.`consignment_id`
+        <where>
+            t.remaining_time > now()
+            <if test="hairs != null and hairs.size() > 0">
+                and t1.hair REGEXP
+                <foreach collection="hairs" index="index" item="hair" open="'" separator="|" close="'">${hair}</foreach>
+            </if>
+
+            <if test="shopExteriors != null and shopExteriors.size() > 0">
+                and t1.shopExterior REGEXP
+                <foreach collection="shopExteriors" index="index" item="shopExterior" open="'" separator="|" close="'">${shopExterior}</foreach>
+            </if>
+
+            <if test="adventures != null and adventures.size() > 0">
+                and t1.adventure REGEXP
+                <foreach collection="adventures" index="index" item="adventure" open="'" separator="|" close="'">${adventure}</foreach>
+            </if>
+
+            <if test="zone_id != null and zone_id != ''">
+                and t.zone_id = #{zone_id}
+            </if>
+            <if test="server_id != null and server_id != ''">
+                and t.server_id = #{server_id}
+            </if>
+            <if test="role_shape != null and role_shape != ''">
+                and t.role_shape = #{role_shape}
+            </if>
+            <if test="role_sect != null and role_sect != ''">
+                and t.role_sect = #{role_sect}
+            </if>
+            <if test="price_s != null and price_s != ''">
+                and t.single_unit_price >= #{price_s}
+            </if>
+            <if test="price_e != null and price_e != ''">
+                and t.single_unit_price <![CDATA[<=]]> #{price_e}
+            </if>
+        </where>
+    </select>
 </mapper>

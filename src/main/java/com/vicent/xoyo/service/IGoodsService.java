@@ -3,6 +3,9 @@ package com.vicent.xoyo.service;
 import com.vicent.xoyo.entity.Goods;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <p>
  *  服务类
@@ -14,7 +17,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface IGoodsService extends IService<Goods> {
     void asyncLoadSchedule();
 
+    void asyncDeleteSchedule();
+
+    void asyncLoadDetail(String id);
+
     boolean insert(Goods good);
 
     boolean update(Goods good);
+
+    List<Map<String,Object>> list(Map<String, Object> body);
+
+    int listCount(Map<String, Object> body);
 }

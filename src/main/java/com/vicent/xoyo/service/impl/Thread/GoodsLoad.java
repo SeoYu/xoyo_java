@@ -2,10 +2,7 @@ package com.vicent.xoyo.service.impl.Thread;
 
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.map.MapUtil;
-import com.vicent.xoyo.constant.CampEnum;
-import com.vicent.xoyo.constant.MenPaiEnum;
-import com.vicent.xoyo.constant.PriceEnum;
-import com.vicent.xoyo.constant.SexEnum;
+import com.vicent.xoyo.constant.*;
 import com.vicent.xoyo.entity.Goods;
 import com.vicent.xoyo.service.IGoodsService;
 import com.vicent.xoyo.utils.Jx3Api;
@@ -40,6 +37,8 @@ public class GoodsLoad implements Runnable {
 
     CampEnum campEnum;
 
+    ZoneEnum zoneEnum;
+
     Map<String, Object> body;
 
     RedisTemplate<String, Object> redisTemplate;
@@ -47,14 +46,15 @@ public class GoodsLoad implements Runnable {
     @Override
     public void run() {
         List<Map<String, Object>> list = jx3Api.takeList(body);
-        System.out.println(priceEnum.getDesc() + " " + menPaiEnum.getDesc() + " " + sexEnum.getDesc() + " " + campEnum.getDesc() + " " + list.size());
+        System.out.println(zoneEnum.getDesc() + " " + priceEnum.getDesc() + " " + menPaiEnum.getDesc() + " " + sexEnum.getDesc() + " " + campEnum.getDesc() + " " + list.size());
         for (Map<String, Object> info : list) {
             LocalDateTime remaining_time = LocalDateTime.now().plus(MapUtil.getLong(info, "remaining_time").longValue(), ChronoUnit.SECONDS);
             Map<String, Object> attrs = MapUtil.get(info, "attrs", new TypeReference<Map<String, Object>>() {
             });
+            int followed_num = MapUtil.getInt(info, "followed_num").intValue();
             Goods good = Goods.builder()
                 .consignmentId(MapUtil.getStr(info, "consignment_id"))
-                .followedNum(MapUtil.getInt(info, "followed_num"))
+                .followedNum(followed_num)
                 .info(MapUtil.getStr(info, "info"))
                 .zoneId(MapUtil.getStr(info, "zone_id"))
                 .remainingTime(remaining_time)
@@ -63,6 +63,7 @@ public class GoodsLoad implements Runnable {
                 .isFollowed(MapUtil.getInt(info, "is_followed"))
                 .singleUnitPrice(MapUtil.getStr(info, "single_unit_price"))
                 .thumb(MapUtil.getStr(info, "thumb"))
+                .tags(MapUtil.getStr(info, "tags"))
                 .roleCamp(MapUtil.getStr(attrs, "role_camp"))
                 .roleShape(MapUtil.getStr(attrs, "role_shape"))
                 .roleSect(MapUtil.getStr(attrs, "role_sect"))
@@ -72,11 +73,14 @@ public class GoodsLoad implements Runnable {
             // db
             if (!redisTemplate.opsForHash().hasKey(GOODS_KEY, good.getConsignmentId())) {
                 save = goodsService.insert(good);
+            }else{
+                save = goodsService.update(good);
             }
-            if (save) {
-                // redis
-                redisTemplate.opsForHash().put(GOODS_KEY, good.getConsignmentId(), good);
-            }
+            // redis
+            redisTemplate.opsForHash().put(GOODS_KEY, good.getConsignmentId(), good);
+//            if (followed_num>10){
+                goodsService.asyncLoadDetail(good.getConsignmentId());
+//            }
         }
     }
 }

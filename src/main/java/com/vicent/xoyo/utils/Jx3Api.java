@@ -26,6 +26,7 @@ public class Jx3Api {
     private static final String CREAT_URL = "https://api-wanbaolou.xoyo.com/api/buyer/order/create";
     private static final String PAY_URL = "https://api-wanbaolou.xoyo.com/api/buyer/order/pay";
     private static final String LIST_URL = "https://api-wanbaolou.xoyo.com/api/buyer/goods/list";
+    private static final String DETAIL_URL = "https://api-wanbaolou.xoyo.com/api/buyer/goods/additional_data";
     private static final String SUCCESS = "SUCCESS";
     private HttpCookie ts_session_id_;
     private HttpCookie xoyokey_;
@@ -104,14 +105,14 @@ public class Jx3Api {
     public List<Map<String, Object>> takeList(Map<String, Object> body){
         Map<String,Object> param1 = new HashMap<String, Object>(){{
             put("req_id",IdUtil.fastUUID());
-            put("zone_id","");
-            put("server_id","");
+            put("zone_id",MapUtil.getStr(body,"zone_id"));
+            put("server_id",MapUtil.getStr(body,"server_id"));
             put("filter[price]",MapUtil.getStr(body,"price"));
             put("filter[state]",0);
             put("filter[tags]",0);
             put("filter[role_sect]",MapUtil.getStr(body,"role_sect"));
-            put("filter[role_shape]",0);
-            put("filter[role_camp]",0);
+            put("filter[role_shape]",MapUtil.getStr(body,"role_shape"));
+            put("filter[role_camp]",MapUtil.getStr(body,"role_camp"));
             put("filter[role_equipment_point]",0);
             put("filter[role_experience_point]",0);
             put("game","jx3");
@@ -134,5 +135,31 @@ public class Jx3Api {
 
         return MapUtil.get(data, "list", new TypeReference<List<Map<String, Object>>>() {
         });
+    }
+
+    public Map<String, Object> takeDetail(Map<String, Object> body){
+        Map<String,Object> param1 = new HashMap<String, Object>(){{
+            put("req_id",IdUtil.fastUUID());
+            put("consignment_id",MapUtil.getStr(body,"consignment_id"));
+            put("goods_type",2);
+//            role_base_info
+//            role_equipment_info
+//            role_appearance_info
+//            role_adventure_info
+            put("additional_key",MapUtil.getStr(body,"additional_key"));
+            put("__ts__",System.currentTimeMillis());// 时间戳
+        }};
+        HttpResponse execute = HttpRequest.get(DETAIL_URL).cookie(ts_session_id_, xoyokey_).form(param1).execute();
+        String response = execute.body();
+        Map<String, Object> convert = Convert.convert(new TypeReference<Map<String, Object>>() {
+        }, JSONUtil.parseObj(response));
+        if (!SUCCESS.equals(MapUtil.getStr(convert,"msg"))){
+            return null;
+        }
+        Map<String, Object> data = MapUtil.get(convert, "data", new TypeReference<Map<String, Object>>() {
+        });
+        Map<String, Object> additional_data = MapUtil.get(data, "additional_data", new TypeReference<Map<String, Object>>() {
+        });
+        return additional_data;
     }
 }
