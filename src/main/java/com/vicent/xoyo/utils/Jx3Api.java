@@ -8,6 +8,10 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
+import com.vicent.xoyo.constant.*;
+import com.vicent.xoyo.service.impl.Thread.GoodsLoad;
 import org.springframework.stereotype.Component;
 
 import java.net.HttpCookie;
@@ -23,8 +27,11 @@ import java.util.Map;
  */
 public class Jx3Api {
 
+    private static final Log log = LogFactory.get();
+
     private static final String CREAT_URL = "https://api-wanbaolou.xoyo.com/api/buyer/order/create";
     private static final String PAY_URL = "https://api-wanbaolou.xoyo.com/api/buyer/order/pay";
+    private static final String WALLET_PAY_URL = "https://api-wanbaolou.xoyo.com/api/platform/verify_code/check";
     private static final String LIST_URL = "https://api-wanbaolou.xoyo.com/api/buyer/goods/list";
     private static final String DETAIL_URL = "https://api-wanbaolou.xoyo.com/api/buyer/goods/additional_data";
     private static final String SUCCESS = "SUCCESS";
@@ -78,6 +85,28 @@ public class Jx3Api {
         return MapUtil.getStr(convert,"msg");
     }
 
+
+    public String takeWalletPay(Map<String, Object> body){
+        Map<String,Object> param1 = new HashMap<String, Object>(){{
+            put("req_id",IdUtil.fastUUID());
+            put("channel","wallet_balance_pay");
+            put("verify_code",MapUtil.getStr(body,"verify_code"));
+            put("__ts__",System.currentTimeMillis());// 时间戳
+            put("callback","__xfe12");
+        }};
+        HttpResponse execute = HttpRequest.get(WALLET_PAY_URL).cookie(ts_session_id_, xoyokey_).form(param1).execute();
+        System.out.println(JSONUtil.toJsonStr(execute.body()));
+        String response = execute.body();
+        response = response.replace("__xfe12(", "").replace(");", "");
+        Map<String, Object> convert = Convert.convert(new TypeReference<Map<String, Object>>() {
+        }, JSONUtil.parseObj(response));
+        if (!SUCCESS.equals(MapUtil.getStr(convert,"msg"))){
+            return MapUtil.getStr(convert,"msg");
+        }
+
+        return MapUtil.getStr(convert,"msg");
+    }
+
     public String takePay(Map<String, Object> body){
         Map<String,Object> param1 = new HashMap<String, Object>(){{
             put("req_id",IdUtil.fastUUID());
@@ -117,18 +146,18 @@ public class Jx3Api {
             put("filter[role_experience_point]",0);
             put("game","jx3");
             put("page",1);
-            put("size",500);
+            put("size",1);
             put("goods_type",2);
             put("sort[price]",1);
             put("__ts__",System.currentTimeMillis());// 时间戳
         }};
         HttpResponse execute = HttpRequest.get(LIST_URL).cookie(ts_session_id_, xoyokey_).form(param1).execute();
-//        System.out.println(JSONUtil.toJsonStr(execute.body()));
         String response = execute.body();
         Map<String, Object> convert = Convert.convert(new TypeReference<Map<String, Object>>() {
         }, JSONUtil.parseObj(response));
         if (!SUCCESS.equals(MapUtil.getStr(convert,"msg"))){
-            return null;
+            log.info(MapUtil.getStr(convert,"msg"));
+            return new ArrayList<Map<String, Object>>();
         }
         Map<String, Object> data = MapUtil.get(convert, "data", new TypeReference<Map<String, Object>>() {
         });
@@ -161,5 +190,26 @@ public class Jx3Api {
         Map<String, Object> additional_data = MapUtil.get(data, "additional_data", new TypeReference<Map<String, Object>>() {
         });
         return additional_data;
+    }
+
+    public static void main(String[] args) {
+        Jx3Api jx3Api = new Jx3Api();
+
+        Map<String,Object> body = new HashMap<String, Object>();
+        body.put("price", PriceEnum.ALL.getCode());
+        body.put("role_sect", MenPaiEnum.BADAO.getCode());
+        body.put("role_camp", CampEnum.ONE.getCode());
+        body.put("role_shape", SexEnum.TWO.getCode());
+        body.put("zone_id","");
+        body.put("server_id","");
+
+        Map<String,Object> baseInfo = new HashMap<String, Object>();
+        baseInfo.put("ts_session_id","Dii2m33mErjqFTXWBGjPGbXOFUaquP1m1mjgTCde");
+        baseInfo.put("xoyokey","MBYEiZz%26%26zu%3DHtHCtDDD%26%26jCTrrzf%3DiY8D0EEiZj%21HCG%3DCtHDDD%26jrziYDE.iD9LtpiETftCYYti%26jzTfJpyJCG.0GC%26%3DEiED%26%3Dtl%26%26808C%3D.Ht");
+        jx3Api.setBaseInfo(baseInfo);
+
+        List<Map<String, Object>> list = jx3Api.takeList(body);
+
+        log.info(JSONUtil.toJsonStr(list));
     }
 }

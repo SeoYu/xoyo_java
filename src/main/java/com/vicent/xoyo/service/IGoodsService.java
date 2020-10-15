@@ -15,7 +15,7 @@ import java.util.Map;
  * @since 2020-09-16
  */
 public interface IGoodsService extends IService<Goods> {
-    void asyncLoadSchedule();
+    void asyncLoadSchedule(Map<String, Object> body);
 
     void asyncDeleteSchedule();
 

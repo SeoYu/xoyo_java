@@ -46,9 +46,31 @@ public class XoyoController {
         return response;
     }
 
+    @PostMapping("/submitVerifyForm")
+    public Map<String, Object> submitVerifyForm(@RequestBody Map<String,Object> body){
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("code","0");
+        try {
+            Jx3Api api = new Jx3Api();
+            api = api.setBaseInfo(body);
+            String orderId = api.takeOrder(body);
+            if (!"SUCCESS".equals(orderId)){
+                throw new Exception(orderId);
+            }
+            body.put("order_id",orderId);
+            String msg = api.takeWalletPay(body);
+            response.put("msg",msg);
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            response.put("code","-1");
+            response.put("msg",e.getMessage());
+        }
+        return response;
+    }
+
     @PostMapping("/admin/load")
     public String load(@RequestBody Map<String,Object> body){
-        goodsService.asyncLoadSchedule();
+        goodsService.asyncLoadSchedule(body);
         return "success";
     }
 }

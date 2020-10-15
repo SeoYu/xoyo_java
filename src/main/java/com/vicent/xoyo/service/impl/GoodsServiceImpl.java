@@ -3,6 +3,7 @@ package com.vicent.xoyo.service.impl;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.thread.ExecutorBuilder;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -57,18 +59,20 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
 
     @Override
 //    @Scheduled(fixedDelay = 1000*60*60*24)
-    @Scheduled(cron = "0 0 6 * * ?")
+//    @Scheduled(cron = "0 0 6 * * ?")
     @Async
-    public void asyncLoadSchedule() {
+    public void asyncLoadSchedule(Map<String, Object> param) {
         System.out.println("asyncLoadSchedule 同步开始");
-        ThreadPoolExecutor threadPoolExecutor = ThreadUtil.newExecutor(20, 1000);
+        ExecutorBuilder executorBuilder = ExecutorBuilder.create().setWorkQueue(new LinkedBlockingQueue<>()).setCorePoolSize(10).setMaxPoolSize(20);
+        ThreadPoolExecutor threadPoolExecutor = executorBuilder.build();
         try {
             // 多线程
             Jx3Api jx3Api = new Jx3Api();
             Map<String,Object> baseInfo = new HashMap<String, Object>();
-            baseInfo.put("ts_session_id","NCie440L1zrJ5nffJTtyTFVsH9fv86FAdCCMQauV");
-            baseInfo.put("xoyokey","ocgWZW2%26%261Lf3Ef3EWWW%26%26s3xee902%3D5PggPZ%26sf9E02%3D3EEW%26%26se9Kg5.H5H.5%26xNZUWU9%3DPPE5%3D3c%3DxsPE-1fWfgWE5u.HP0W%26u93gP%3DWW3%263");
+            baseInfo.put("ts_session_id",MapUtil.getStr(param,"session"));
+            baseInfo.put("xoyokey",MapUtil.getStr(param,"xoyo"));
             jx3Api.setBaseInfo(baseInfo);
+            System.out.println(JSONUtil.toJsonStr(baseInfo));
             for (PriceEnum priceEnum : PriceEnum.values()) {
                 if (priceEnum == PriceEnum.ALL){
                     continue;
@@ -89,7 +93,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
                                 body.put("zone_id","");
 //                                body.put("server_id",zoneEnum.getServer());
                                 body.put("server_id","");
-
+                                System.out.println(ZoneEnum.ONE.getDesc() + " " + priceEnum.getDesc() + " " + menPaiEnum.getDesc() + " " + sexEnum.getDesc() + " " + campEnum.getDesc());
                                 GoodsLoad goodsLoad = new GoodsLoad(this, jx3Api, priceEnum, menPaiEnum, sexEnum, campEnum,ZoneEnum.ONE, body, redisTemplate);
                                 threadPoolExecutor.execute(goodsLoad);
 //                            }
